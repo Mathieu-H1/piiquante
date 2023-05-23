@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 
+//* créer un schéma de données / pas d'id car créé par mangoose
 const sauceSchema = mongoose.Schema({
+    userId: { type: String, required: true },
     name: { type: String, required: true },
     manufacturer: { type: String, required: true },
     description: { type: String, required: true },
@@ -9,11 +11,9 @@ const sauceSchema = mongoose.Schema({
     heat: { type: Number, required: true },
     likes: { type: Number, required: true },
     dislikes: { type: Number, required: true },
-    
-    usersLiked: [userId, { type: String }], //! ?
-    usersDisliked:[userId, { type: String }],   //! ?
+    usersLiked: { type: [String] },
+    usersDisliked: { type: [String] },
 });
+console.log(sauceSchema);
 
 module.exports = mongoose.model('Sauce', sauceSchema);
-
-// remplacer Thing par Sauce dans doc

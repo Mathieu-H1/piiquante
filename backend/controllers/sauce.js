@@ -1,29 +1,29 @@
 //* fs -> modif système de fichiers
-const Thing = require('../models/thing');
+const Sauce = require('../models/sauce');
 const fs = require('fs');
 
-//* sup les id car on ne fait jamais confiance à 1 utilisateur
-exports.createThing = (req, res, next) => {
-    const thingObject = JSON.parse(req.body.thing);
-    delete thingObject._id;
-    delete thingObject._userId;
-    const thing = new Thing({
-        ...thingObject,
-        userId: req.auth.userId,
+//* remplace get / post / delete / put
+exports.createSauce = (req, res, next) => {
+    const sauceObject = JSON.parse(req.body.sauce);
+    delete sauceObject._id;
+    delete sauceObject._userId; // suppression car jamais faire confiance
+    const sauce = new Sauce({
+        ...sauceObject,
+        userId: req.auth.userId,    // à la place user_id du token d'authentification
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    });
+    }); // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
 
-    thing.save()
-        .then(() => { res.status(201).json({ message: 'Objet enregistré !' }) })
+    sauce.save()
+        .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
         .catch(error => { res.status(400).json({ error }) })
 };
 
-exports.getOneThing = (req, res, next) => {
-    Thing.findOne({
+exports.getOneSauce = (req, res, next) => {
+    Sauce.findOne({
         _id: req.params.id
     }).then(
-        (thing) => {
-            res.status(200).json(thing);
+        (sauce) => {
+            res.status(200).json(sauce);
         }
     ).catch(
         (error) => {
@@ -34,20 +34,20 @@ exports.getOneThing = (req, res, next) => {
     );
 };
 
-exports.modifyThing = (req, res, next) => {
-    const thingObject = req.file ? {
-        ...JSON.parse(req.body.thing),
+exports.modifySauce = (req, res, next) => {
+    const sauceObject = req.file ? {    // regarde si l'objet existe ou non
+        ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : { ...req.body };
+    } : { ...req.body };    // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
 
-    delete thingObject._userId;
-    Thing.findOne({ _id: req.params.id })
-        .then((thing) => {
-            if (thing.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Not authorized' });
+    delete sauceObject._userId;
+    Sauce.findOne({ _id: req.params.id })
+        .then((sauce) => {
+            if (sauce.userId != req.auth.userId) {
+                res.status(401).json({ message: 'Non autorisé' });
             } else {
-                Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
-                    .then(() => res.status(200).json({ message: 'Objet modifié!' }))
+                Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                    .then(() => res.status(200).json({ message: 'Sauce modifiée!' }))
                     .catch(error => res.status(401).json({ error }));
             }
         })
@@ -56,16 +56,16 @@ exports.modifyThing = (req, res, next) => {
         });
 };
 //* unlink -> sup fichier
-exports.deleteThing = (req, res, next) => {
-    Thing.findOne({ _id: req.params.id })
-        .then(thing => {
-            if (thing.userId != req.auth.userId) {
-                res.status(401).json({ message: 'Not authorized' });
+exports.deleteSauce = (req, res, next) => {
+    Sauce.findOne({ _id: req.params.id })   // s'assurer que c'est le bon utilisateur
+        .then(sauce => {
+            if (sauce.userId != req.auth.userId) {
+                res.status(401).json({ message: 'Non autorisé' });
             } else {
-                const filename = thing.imageUrl.split('/images/')[1];
+                const filename = sauce.imageUrl.split('/images/')[1];
                 fs.unlink(`images/${filename}`, () => {
-                    Thing.deleteOne({ _id: req.params.id })
-                        .then(() => { res.status(200).json({ message: 'Objet supprimé !' }) })
+                    Sauce.deleteOne({ _id: req.params.id })
+                        .then(() => { res.status(200).json({ message: 'Sauce supprimée !' }) })
                         .catch(error => res.status(401).json({ error }));
                 });
             }
@@ -75,10 +75,10 @@ exports.deleteThing = (req, res, next) => {
         });
 };
 
-exports.getAllStuff = (req, res, next) => {
-    Thing.find().then(
-        (things) => {
-            res.status(200).json(things);
+exports.getAllSauce = (req, res, next) => {
+    Sauce.find().then(
+        (sauces) => {
+            res.status(200).json(sauces);
         }
     ).catch(
         (error) => {

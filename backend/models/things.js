@@ -10,4 +10,3 @@
 // });
 
 // module.exports = mongoose.model('Thing', thingSchema);
-

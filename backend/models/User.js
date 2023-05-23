@@ -1,3 +1,4 @@
+//* uniqueValidator: package de validation (1 seule adresse mail par pers)
 const mongoose = require('mongoose');
 const uniqueValidator = require('mongoose-unique-validator');
 

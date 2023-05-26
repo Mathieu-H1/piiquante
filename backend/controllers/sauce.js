@@ -1,4 +1,5 @@
 //* fs -> modif système de fichiers
+const { log } = require('console');
 const Sauce = require('../models/sauce');
 const fs = require('fs');
 
@@ -40,13 +41,16 @@ exports.createSauce = (req, res, next) => {
     delete sauceObject._userId; // suppression car jamais faire confiance
     const sauce = new Sauce({
         ...sauceObject,
+        likes: 0,
+        dislikes: 0,
         userId: req.auth.userId,    // à la place user_id du token d'authentification
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     }); // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
 
     sauce.save()
         .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
-        .catch(error => { res.status(400).json({ error }) })
+        .catch(error => { res.status(400).json({ error })
+    console.log(error); })
 };
 
 exports.modifySauce = (req, res, next) => {

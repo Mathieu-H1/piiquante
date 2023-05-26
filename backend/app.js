@@ -32,7 +32,7 @@ mongoose.connect('mongodb+srv://MatDev:UZFWpCgWhlH79iiz@cluster01.edfqjjd.mongod
     .catch(() => console.log('Connexion à MongoDB échouée !'));
 
 //* enregistrement des routeurs
-app.use('/api/sauce', sauceRoutes);
+app.use('/api/sauces', sauceRoutes);
 app.use('/api/auth', userRoutes);
 app.use('/images', express.static(path.join(__dirname, 'images')));
 

@@ -3,19 +3,19 @@ const Sauce = require('../models/sauce');
 const fs = require('fs');
 
 //* remplace get / post / delete / put
-exports.createSauce = (req, res, next) => {
-    const sauceObject = JSON.parse(req.body.sauce);
-    delete sauceObject._id;
-    delete sauceObject._userId; // suppression car jamais faire confiance
-    const sauce = new Sauce({
-        ...sauceObject,
-        userId: req.auth.userId,    // à la place user_id du token d'authentification
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    }); // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
 
-    sauce.save()
-        .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
-        .catch(error => { res.status(400).json({ error }) })
+exports.getAllSauce = (req, res, next) => {
+    Sauce.find().then(
+        (sauces) => {
+            res.status(200).json(sauces);
+        }
+    ).catch(
+        (error) => {
+            res.status(400).json({
+                error: error
+            });
+        }
+    );
 };
 
 exports.getOneSauce = (req, res, next) => {
@@ -32,6 +32,21 @@ exports.getOneSauce = (req, res, next) => {
             });
         }
     );
+};
+
+exports.createSauce = (req, res, next) => {
+    const sauceObject = JSON.parse(req.body.sauce);
+    delete sauceObject._id;
+    delete sauceObject._userId; // suppression car jamais faire confiance
+    const sauce = new Sauce({
+        ...sauceObject,
+        userId: req.auth.userId,    // à la place user_id du token d'authentification
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+    }); // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
+
+    sauce.save()
+        .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
+        .catch(error => { res.status(400).json({ error }) })
 };
 
 exports.modifySauce = (req, res, next) => {
@@ -55,6 +70,7 @@ exports.modifySauce = (req, res, next) => {
             res.status(400).json({ error });
         });
 };
+
 //* unlink -> sup fichier
 exports.deleteSauce = (req, res, next) => {
     Sauce.findOne({ _id: req.params.id })   // s'assurer que c'est le bon utilisateur
@@ -73,18 +89,4 @@ exports.deleteSauce = (req, res, next) => {
         .catch(error => {
             res.status(500).json({ error });
         });
-};
-
-exports.getAllSauce = (req, res, next) => {
-    Sauce.find().then(
-        (sauces) => {
-            res.status(200).json(sauces);
-        }
-    ).catch(
-        (error) => {
-            res.status(400).json({
-                error: error
-            });
-        }
-    );
 };

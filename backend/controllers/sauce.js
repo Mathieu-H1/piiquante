@@ -41,16 +41,18 @@ exports.createSauce = (req, res, next) => {
     delete sauceObject._userId; // suppression car jamais faire confiance
     const sauce = new Sauce({
         ...sauceObject,
-        likes: 0,
-        dislikes: 0,
         userId: req.auth.userId,    // à la place user_id du token d'authentification
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`,
+        likes: 0,
+        dislikes: 0
     }); // 1er segment de l'url / hôte du serveur / fichier / nom du fichier
 
     sauce.save()
         .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
-        .catch(error => { res.status(400).json({ error })
-    console.log(error); })
+        .catch(error => {
+            res.status(400).json({ error })
+            console.log(error);
+        })
 };
 
 exports.modifySauce = (req, res, next) => {
@@ -73,6 +75,120 @@ exports.modifySauce = (req, res, next) => {
         .catch((error) => {
             res.status(400).json({ error });
         });
+};
+
+// si user aime -> +1 ET ajout user ET  vérifier si user a déjà like (aucun chgt) ou dislike (à enlever)
+// si user dislike -> +1 sur dislike ET  vérifier si user a déjà like (à enlever) ou dislike (sans chgt) et 
+// si l'utilisateur enlève like ou dislike à retirer des users ET décompte
+// different ! tout retirer like /dis + user like /dis -> au début 
+
+exports.likeSauce = (req, res) => {
+    const userId = req.auth.userId;
+    const sauceId = req.params.id;
+
+    Sauce.findOne({ _id: sauceId })   // trouver la sauce dans la bdd
+        .then(sauce => {
+
+            //* dif instructions suivant valeur variable like
+            switch (like) {
+                case 0:
+                    if (sauce.usersLiked.find(user => user == userId)) {
+                        delete sauce.usersLiked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _likes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    }
+
+                    if (sauce.usersDisliked.find(user => user == userId)) {
+                        delete sauce.usersDisliked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _dislikes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    };
+                    break;
+
+                case 1:
+                    if (sauce.usersDisliked.find(user => user == userId)) {
+                        delete sauce.usersDisliked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _dislikes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    };
+
+                    if (sauce.usersLiked.find(user => user == userId)) {
+                        delete sauce.usersLiked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _likes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    }
+
+                    if (sauce.usersLiked.find(user => user !== userId) & sauce.usersLiked.find(user => user !== userId)) {
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _likes: +1,
+                                _usersLiked: userId
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis ajouté !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    };
+                    break;
+
+                case -1:
+                    if (sauce.usersLiked.find(user => user == userId)) {
+                        delete sauce.usersLiked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _likes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    }
+
+                    if (sauce.usersDisliked.find(user => user == userId)) {
+                        delete sauce.usersDisliked[userId];
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _dislikes: -1,
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    };
+
+                    if (sauce.usersLiked.find(user => user !== userId) & sauce.usersLiked.find(user => user !== userId)) {
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                _dislikes: +1,
+                                _usersDisliked: userId
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis ajouté !' }))
+                            .catch(error => res.status(401).json({ error }));
+                    };
+                    break;
+            }
+        }
+        ).catch((error => {
+            res.status(500).json({ error });
+        }));
 };
 
 //* unlink -> sup fichier

@@ -11,16 +11,10 @@ const userRoutes = require('./routes/user');
 const app = express();
 
 //* middleware général pour ttes requêtes grâce aux headers -> autorisation certains headers et certaines méthodes (GET,POST..)
-//! essai
-//! app.use((req, res, next) => {   
-//!    res.setHeader('Access-Control-Allow-Origin', '*');
-//!    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content, Accept, Content-Type, Authorization');
-//! res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
-//!next();
-//!});
+//* remplacé par middleware CORS
 
 app.use(express.json());
-app.use(cors());    //! essai
+app.use(cors());
 
 //* cacher mot de passe et nom utilisateur et adresse et nom token
 mongoose.connect('mongodb+srv://MatDev:UZFWpCgWhlH79iiz@cluster01.edfqjjd.mongodb.net/?retryWrites=true&w=majority',

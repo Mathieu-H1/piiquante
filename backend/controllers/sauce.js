@@ -51,7 +51,7 @@ exports.createSauce = (req, res, next) => {
         .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
         .catch(error => {
             res.status(400).json({ error })
-            console.log(error);
+            // console.log(error);
         })
 };
 
@@ -82,7 +82,8 @@ exports.modifySauce = (req, res, next) => {
 // si l'utilisateur enlève like ou dislike à retirer des users ET décompte
 // different ! tout retirer like /dis + user like /dis -> au début 
 
-exports.likeSauce = (req, res) => {
+exports.likeSauce = (req, res, next) => {
+    const like = req.body.like;
     const userId = req.auth.userId;
     const sauceId = req.params.id;
 
@@ -138,7 +139,7 @@ exports.likeSauce = (req, res) => {
                             .catch(error => res.status(401).json({ error }));
                     }
 
-                    if (sauce.usersLiked.find(user => user !== userId) & sauce.usersLiked.find(user => user !== userId)) {
+                    if (sauce.usersLiked.find(user => user !== userId) && sauce.usersDisliked.find(user => user !== userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
                                 ...sauceObject,
@@ -147,6 +148,7 @@ exports.likeSauce = (req, res) => {
                             })
                             .then(() => res.status(200).json({ message: 'Avis ajouté !' }))
                             .catch(error => res.status(401).json({ error }));
+                            // console.log(error);
                     };
                     break;
 
@@ -173,7 +175,7 @@ exports.likeSauce = (req, res) => {
                             .catch(error => res.status(401).json({ error }));
                     };
 
-                    if (sauce.usersLiked.find(user => user !== userId) & sauce.usersLiked.find(user => user !== userId)) {
+                    if (sauce.usersDisliked.find(user => user !== userId) && sauce.usersLiked.find(user => user !== userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
                                 ...sauceObject,
@@ -188,6 +190,7 @@ exports.likeSauce = (req, res) => {
         }
         ).catch((error => {
             res.status(500).json({ error });
+            console.log(error);
         }));
 };
 

@@ -1,5 +1,5 @@
 //* fs -> modif système de fichiers
-const { log } = require('console');
+const { log, error } = require('console');
 const Sauce = require('../models/sauce');
 const fs = require('fs');
 
@@ -84,114 +84,116 @@ exports.modifySauce = (req, res, next) => {
 
 exports.likeSauce = (req, res, next) => {
     const like = req.body.like;
+    const sauceObject = req.body.sauce;
     const userId = req.auth.userId;
     const sauceId = req.params.id;
 
-    Sauce.findOne({ _id: sauceId })   // trouver la sauce dans la bdd
+    Sauce.findOne({ _id: sauceId })   // trouver la sauce dans la bdd par rapport à la route
         .then(sauce => {
 
             //* dif instructions suivant valeur variable like
+            //* $inc opérateur mongoDb pour incrémenter ou décrémenter une val num
+            //* $pull opérateur mongoDb pour sup d'un tableau une ou des valeurs
+            //* $push opérateur mongoDb pour ajouter une valeur dans un tableau
+
             switch (like) {
+
+                // si user ne "note pas" la sauce
                 case 0:
-                    if (sauce.usersLiked.find(user => user == userId)) {
-                        delete sauce.usersLiked[userId];
+                    if (sauce.usersDisliked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
                                 ...sauceObject,
-                                _likes: -1,
+                                $inc: { "dislikes": -1 },
+                                $pull: { "usersDisliked": userId }
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+
+                    } else if (sauce.usersLiked.find(user => user == userId)) {
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                $inc: { "likes": -1 },
+                                $pull: { "usersLiked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
                     }
-
-                    if (sauce.usersDisliked.find(user => user == userId)) {
-                        delete sauce.usersDisliked[userId];
-                        Sauce.updateOne({ _id: sauceId },
-                            {
-                                ...sauceObject,
-                                _dislikes: -1,
-                            })
-                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
-                            .catch(error => res.status(401).json({ error }));
-                    };
                     break;
 
+                // si user aime la sauce
                 case 1:
                     if (sauce.usersDisliked.find(user => user == userId)) {
-                        delete sauce.usersDisliked[userId];
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
-                                _dislikes: -1,
+                                $inc: { "dislikes": -1 },
+                                $pull: { "usersDisliked": userId },
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
-                    };
 
-                    if (sauce.usersLiked.find(user => user == userId)) {
-                        delete sauce.usersLiked[userId];
+                    } else if (sauce.usersLiked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
-                                _likes: -1,
+                                $inc: { "likes": -1 },
+                                $pull: { "usersLiked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
                     }
 
-                    if (sauce.usersLiked.find(user => user !== userId) && sauce.usersDisliked.find(user => user !== userId)) {
+                    else {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
-                                _likes: +1,
-                                _usersLiked: userId
+                                $inc: { "likes": +1 },
+                                $push: { "usersLiked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis ajouté !' }))
                             .catch(error => res.status(401).json({ error }));
-                            // console.log(error);
                     };
                     break;
 
+                // si user n'aime pas la sauce
                 case -1:
-                    if (sauce.usersLiked.find(user => user == userId)) {
-                        delete sauce.usersLiked[userId];
+                    if (sauce.usersDisliked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
                                 ...sauceObject,
-                                _likes: -1,
+                                $inc: { "dislikes": -1 },
+                                $pull: { "usersDisliked": userId }
+                            })
+                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
+                            .catch(error => res.status(401).json({ error }));
+
+                    } else if (sauce.usersLiked.find(user => user == userId)) {
+                        Sauce.updateOne({ _id: sauceId },
+                            {
+                                ...sauceObject,
+                                $inc: { "likes": -1 },
+                                $pull: { "usersLiked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
                     }
 
-                    if (sauce.usersDisliked.find(user => user == userId)) {
-                        delete sauce.usersDisliked[userId];
+                    else {
                         Sauce.updateOne({ _id: sauceId },
                             {
                                 ...sauceObject,
-                                _dislikes: -1,
-                            })
-                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
-                            .catch(error => res.status(401).json({ error }));
-                    };
-
-                    if (sauce.usersDisliked.find(user => user !== userId) && sauce.usersLiked.find(user => user !== userId)) {
-                        Sauce.updateOne({ _id: sauceId },
-                            {
-                                ...sauceObject,
-                                _dislikes: +1,
-                                _usersDisliked: userId
+                                $inc: { "dislikes": +1 },
+                                $push: { "usersDisliked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis ajouté !' }))
                             .catch(error => res.status(401).json({ error }));
                     };
                     break;
             }
-        }
-        ).catch((error => {
+        })
+        .catch(error => {
             res.status(500).json({ error });
-            console.log(error);
-        }));
+            // console.log(error);
+        });
 };
 
 //* unlink -> sup fichier

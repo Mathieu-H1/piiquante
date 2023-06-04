@@ -1,9 +1,12 @@
 //* express: framework pour créat° et gest° serveur
 //* mongoose: package pour faciliter échanges avec bdd mongoDB (bdd = base de donnée)
+//* dotenv: stocker variable hors appli
+
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 const cors = require('cors');
+const dotenv= require('dotenv').config();
 
 const sauceRoutes = require('./routes/sauce');
 const userRoutes = require('./routes/user');
@@ -16,8 +19,8 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-//* cacher mot de passe et nom utilisateur et adresse et nom token
-mongoose.connect('mongodb+srv://MatDev:UZFWpCgWhlH79iiz@cluster01.edfqjjd.mongodb.net/?retryWrites=true&w=majority',
+//* cacher mot de passe, nom utilisateur, adresse
+mongoose.connect(process.env.DB_DATABASE_URL,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true

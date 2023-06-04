@@ -51,7 +51,6 @@ exports.createSauce = (req, res, next) => {
         .then(() => { res.status(201).json({ message: 'Sauce enregistrée !' }) })
         .catch(error => {
             res.status(400).json({ error })
-            // console.log(error);
         })
 };
 
@@ -120,6 +119,10 @@ exports.likeSauce = (req, res, next) => {
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
                     }
+
+                    else {
+                    return res.status(200).json({ message: 'Aucun avis !' });
+                    };
                     break;
 
                 // si user aime la sauce
@@ -192,7 +195,6 @@ exports.likeSauce = (req, res, next) => {
         })
         .catch(error => {
             res.status(500).json({ error });
-            // console.log(error);
         });
 };
 

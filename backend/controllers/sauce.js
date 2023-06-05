@@ -83,7 +83,6 @@ exports.modifySauce = (req, res, next) => {
 
 exports.likeSauce = (req, res, next) => {
     const like = req.body.like;
-    const sauceObject = req.body.sauce;
     const userId = req.auth.userId;
     const sauceId = req.params.id;
 
@@ -102,7 +101,6 @@ exports.likeSauce = (req, res, next) => {
                     if (sauce.usersDisliked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
                                 $inc: { "dislikes": -1 },
                                 $pull: { "usersDisliked": userId }
                             })
@@ -112,7 +110,6 @@ exports.likeSauce = (req, res, next) => {
                     } else if (sauce.usersLiked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
                                 $inc: { "likes": -1 },
                                 $pull: { "usersLiked": userId }
                             })
@@ -162,7 +159,6 @@ exports.likeSauce = (req, res, next) => {
                     if (sauce.usersDisliked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
                                 $inc: { "dislikes": -1 },
                                 $pull: { "usersDisliked": userId }
                             })
@@ -172,7 +168,6 @@ exports.likeSauce = (req, res, next) => {
                     } else if (sauce.usersLiked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
                                 $inc: { "likes": -1 },
                                 $pull: { "usersLiked": userId }
                             })
@@ -183,7 +178,6 @@ exports.likeSauce = (req, res, next) => {
                     else {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                ...sauceObject,
                                 $inc: { "dislikes": +1 },
                                 $push: { "usersDisliked": userId }
                             })

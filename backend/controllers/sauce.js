@@ -118,7 +118,7 @@ exports.likeSauce = (req, res, next) => {
                     }
 
                     else {
-                    return res.status(200).json({ message: 'Aucun avis !' });
+                        return res.status(200).json({ message: 'Aucun avis !' });
                     };
                     break;
 
@@ -127,20 +127,15 @@ exports.likeSauce = (req, res, next) => {
                     if (sauce.usersDisliked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                $inc: { "dislikes": -1 },
+                                $inc: { "dislikes": -1, "likes": +1 },
                                 $pull: { "usersDisliked": userId },
+                                $push: { "usersLiked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));
 
                     } else if (sauce.usersLiked.find(user => user == userId)) {
-                        Sauce.updateOne({ _id: sauceId },
-                            {
-                                $inc: { "likes": -1 },
-                                $pull: { "usersLiked": userId }
-                            })
-                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
-                            .catch(error => res.status(401).json({ error }));
+                        return res.status(200).json({ message: 'Avis ajouté !' })
                     }
 
                     else {
@@ -157,19 +152,14 @@ exports.likeSauce = (req, res, next) => {
                 // si user n'aime pas la sauce
                 case -1:
                     if (sauce.usersDisliked.find(user => user == userId)) {
-                        Sauce.updateOne({ _id: sauceId },
-                            {
-                                $inc: { "dislikes": -1 },
-                                $pull: { "usersDisliked": userId }
-                            })
-                            .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
-                            .catch(error => res.status(401).json({ error }));
+                        return res.status(200).json({ message: 'Avis ajouté !' })
 
                     } else if (sauce.usersLiked.find(user => user == userId)) {
                         Sauce.updateOne({ _id: sauceId },
                             {
-                                $inc: { "likes": -1 },
-                                $pull: { "usersLiked": userId }
+                                $inc: { "likes": -1, "dislikes": +1 },
+                                $pull: { "usersLiked": userId },
+                                $push: { "usersDisliked": userId }
                             })
                             .then(() => res.status(200).json({ message: 'Avis supprimé !' }))
                             .catch(error => res.status(401).json({ error }));

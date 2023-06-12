@@ -4,6 +4,16 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
 exports.signup = (req, res, next) => {
+    const regexMail = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+    if(!regexMail.test(req.body.email)) {
+        return res.status(401).json({ error: 'Email non valide !' })
+    };
+
+    const regexPassword = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$/;
+    if(!regexPassword.test(req.body.password)) {
+        return res.status(401).json({ error: 'Mot de passe pas assez fort !' })
+    };
+
     bcrypt.hash(req.body.password, 10)
         .then(hash => {
             const user = new User({
